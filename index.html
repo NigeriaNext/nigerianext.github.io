@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html> 
+<head> 
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
+  <title>Custom Google Map</title> 
+  <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.1.min.js"></script>
+  <script src="js/infobox.js"></script>
+  <style>
+
+    /* overall map styles */
+
+    #map {
+        width:  100%;
+        height: 400px;
+    }
+
+    /* infobox content styles */
+
+    #map hr {
+        border: none;
+        background-color: #ccc;
+        color: #ccc;
+        height: 1px;
+    }
+
+    /* styles for infobox top bar */
+
+    #map h3:before,
+    #map h3.power:before,
+    #map h3.transport:before,
+    #map h3.water:before,
+    #map h3.education:before {
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        margin: -20px 0 5px -6px;
+        width: 254px;
+        height:18px;
+        display: block;
+        padding: 4px 5px 0 21px;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background-repeat: no-repeat;
+        background-size: 10px;
+        background-position: 7px 5px;
+        content:'';
+        background-color: #939598;
+
+    } 
+
+    /* top bar categorical label */
+
+    #map h3.power:before {
+        content:'Power';
+        background-color: #DA7E49;
+        background-image: url('https://s3.amazonaws.com/images.newscred.com/0fc347734347172fed32e0eaca5309a8');
+    }
+
+    #map h3.transport:before {
+        content:'Transportation';
+        background-color: #c76f58;
+        background-image: url('https://s3.amazonaws.com/images.newscred.com/5a6bfd7111e97d84f35ac47336b650a4');
+    }
+
+    #map h3.water:before {
+        content:'Water Management';
+        background-color: #498595;
+        background-image: url('https://s3.amazonaws.com/images.newscred.com/e1301af66635a662a0f62085014ab363');
+    }
+
+    #map h3.education:before {
+        content:'Education';
+        background-color: #e5a330;
+        background-image: url('https://s3.amazonaws.com/images.newscred.com/d1db5ea16eb8c30c71d13ae40fafffac');
+    }
+
+    /* infobox fade in and up animation */
+
+    .infoBox {
+        -webkit-animation: fadeIn 500ms; 
+        animation: fadeIn 500ms;
+    }
+
+    @-webkit-keyframes fadeIn {
+        from {
+            opacity: 0;
+            margin-top: 20px;
+        }
+        to {
+            opacity: 0.9;
+            margin-top: 0;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            margin-top: 20px;
+        }
+        to {
+            opacity: 0.9;
+            margin-top: 0;
+        }
+    }
+
+  </style>
+</head> 
+<body>
+  <div id="map"></div>
+
+  <script type="text/javascript">
+
+    // map styles
+    // created with:
+    // http://gmaps-samples-v3.googlecode.com/svn/trunk/styledmaps/wizard/index.html
+
+    var styles = [{
+        stylers: [              
+            //{hue: "#007e40" },
+            { saturation: -7 },
+            { lightness: 35 }
+        ]
+    }, {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [
+            { lightness: 100 },
+            { visinfoboxility: "simplified" }
+        ]
+    }, {
+        featureType: "road",
+        elementType: "labels",
+        stylers: [
+            { visinfoboxility: "on" }
+        ]
+    }];
+
+    var map = new google.maps.Map(document.getElementById('map'), {
+      // set map center and zoom
+      center: new google.maps.LatLng(8.477751,8.6774567),
+      zoom: 6,
+      // toggle default map UI
+      disableDefaultUI: true,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    map.set('styles', styles);
+
+    // infobox logic
+    function initMarkers(map, markerData) {
+        var newMarkers = [],
+            marker;
+            
+        for(var i=0; i<markerData.length; i++) {
+            marker = new google.maps.Marker({
+                map: map,
+                draggable: false,
+                position: markerData[i].latLng,
+                // not sure what this does, but great name
+                visinfoboxle: true,
+                icon: 'https://s3.amazonaws.com/images.newscred.com/33ae7ef03a0b08da7e7a34389eb66f67'
+            }),
+            boxText = document.createElement("div"),
+            // these are the options for all infoboxes
+            infoboxOptions = {
+                content: boxText,
+                // auto pan to opened infobox
+                disableAutoPan: false,
+                maxWidth: 0,
+                // offest of textbox to marker
+                pixelOffset: new google.maps.Size(-140, 0),
+                zIndex: null,
+                boxStyle: {
+                    // can add arrow to box here if desired via transparent img
+                    background: "",
+                    opacity: 0.9,
+                    width: "280px"
+                },
+                closeBoxMargin: "12px 4px 2px 4px",
+                closeBoxURL: "https://s3.amazonaws.com/images.newscred.com/f8361048b6db6b52816100f9b02760ae",
+                // sets how close to the edge of the map the infobox can be after openning
+                infoBoxClearance: new google.maps.Size(20, 20),
+                visible: true,
+                pane: "floatPane",
+                enableEventPropagation: false
+            };
+            
+            newMarkers.push(marker);
+
+
+            
+
+            // define the text and style for all infoboxes
+            boxText.style.cssText = "border: 1px solid #dedede; margin-top: 8px; background:#fff; color:#222; font-family:'Open Sans', 'Helvetica Neue', Helvetica, Arial; font-size:12px; padding: 5px; border-radius:4px; -webkit-border-radius:4px; -moz-border-radius:4px;";
+            
+            //setting up infobox categorical styling
+            if (markerData[i].type === 'Power'){
+                boxText.innerHTML = '<h3 class="power">' + markerData[i].title + '</h3><hr><p>' + markerData[i].description + '</p>';
+            }else if(markerData[i].type === 'Transportation'){
+                boxText.innerHTML = '<h3 class="transport">' + markerData[i].title + '</h3><hr><p>' + markerData[i].description + '</p>';
+            }else if(markerData[i].type === 'Water'){
+                boxText.innerHTML = '<h3 class="water">' + markerData[i].title + '</h3><hr><p>' + markerData[i].description + '</p>';
+            }else if(markerData[i].type === 'Education'){
+                boxText.innerHTML = '<h3 class="education">' + markerData[i].title + '</h3><hr><p>' + markerData[i].description + '</p>';
+            }else{
+                boxText.innerHTML = '<h3>' + markerData[i].title + '</h3><hr><p>' + markerData[i].description + '</p>';
+            }
+
+            // define the infobox
+            newMarkers[i].infobox = new InfoBox(infoboxOptions);
+
+
+            // open first when page is loaded
+            //newMarkers[0].infobox.open(map, this);
+            //map.panTo(markerData[i].latLng);
+
+            // open box on click and close all others
+            google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                return function() {
+                    for (var j=0;j<newMarkers.length;j++) {
+                        newMarkers[j].infobox.close(map, this);
+                    }
+                    
+                    newMarkers[i].infobox.open(map, this);
+                    
+                    map.panTo(markerData[i].latLng);
+                    map.panBy(0, 75);
+                }
+            })(marker, i));
+        }
+        
+        return newMarkers;
+
+    }
+
+    // these are the markers
+
+    markers = initMarkers(map, [
+        { latLng: new google.maps.LatLng(6.134888, 6.766784), title: "Onitsha Port", type: "Transportation", description: "The Onitsha River port project, constructed on the Niger River with spacious warehouses, cargo units, and administrative offices, is part of the government's effort to increase capacity for domestic commerce by taking advantage of Nigeria's extensive inland waterways." },
+        { latLng: new google.maps.LatLng(9.066667, 7.483333), title: "Abuja Light Rail System", type: "Transportation",  description: "Abuja is the Nigerian capital and a rapidly growing economic hub that is home to nearly 3,000,000 people. To address the transportation needs of this growing city, the government has commissioned the construction of a light rail system that will carry 700,000 commuters daily when it is completed in 2015." },
+        { latLng: new google.maps.LatLng(6.421975, 3.508437), title: "Lekki Port (Lagos)", type: "Transportation", description: "Lekki Port, the largest public-private partnership to date in Nigeria, will provide much-needed port capacity to accomodate Nigeria's rapidly growing manufacturing and agricultural sectors." },
+        { latLng: new google.maps.LatLng(5.0694, 8.3403), title: "Calabar Power Plant", type: "Power", description: "The Calabar Gas Power Plant is the third major natural gas power plant contructed in the last several years, and the largest.  The plant is part of the government's broader effort to increase electricity access in Nigeria with domestic natural gas." },
+        { latLng: new google.maps.LatLng(5.533700, 5.700703), title: "Niger River Dredging", type: "Transportation", description: "The Lower Niger River is being dredged along 527km from Warri to Baro to help increase domestic transportation capacity. The government plans to turn over 10,000km of intra-coastal waters into transportation infrastructure." },
+        { latLng: new google.maps.LatLng(4.575805, 7.560482), title: "Uquo Gas Processing Facility", type: "Power", description: "The Uquo Gas Processing Facility will be a major supplier of natural gas for electricity generation. The plant is one of the largest ventures by indigenous Nigerian companies in Africa." },
+        { latLng: new google.maps.LatLng(10.315833, 9.844167), title: "Bauchi Water Project", type: "Water", description: "The Bauchi Water Supply Project is being upgraded to increase capacity thanks to investments from the World Bank and local government. In the last five years, government investment in water supply projects across Nigeria has increased the proportion of the population with easy access to water from 30 percent in 2009 to 77 percent in 2013." },
+        { latLng: new google.maps.LatLng(6.866667, 9.666667), title: "Kashimbila Dam", type: "Water", description: "The Kashimbila dam in Taraba State will produce 40 MW of electricity, help control flooding, and supply water to the region when completed.  The project is expected to provide and support hundreds of thousands of jobs across many sectors of the local economy, including agriculture." },
+        { latLng: new google.maps.LatLng(7.996932, 7.840805), title: "Oweto Bridge", type: "Transportation", description: "The Oweto Bridge project, a $221 million project, will span the Benue River and link Benue and Nasarawa States in an effort to better connect the northern and southern regions of Nigeria." },
+        { latLng: new google.maps.LatLng(6.672217, 3.360111), title: "Akute Power Plant", type: "Power", description: "The newly-built Akute Power Transmission Plant is Nigeria's largest transmission facility. The government has turned the plant over to the privately-held Transmission Company of Nigeria as part its successful privatization strategy for the power sector." },
+        { latLng: new google.maps.LatLng(11.8047537,13.1448625), title: "Maiduguri-Kano Road", type: "Transportation", description: "To keep pace with the increased commercial traffic on Nigeria's highways, the government has invested over $5.1 billion to pave, repair, and expand key roads in the north. The 510km Maiduguri-Kano is one of the vital routes that is being expanded." },
+        { latLng: new google.maps.LatLng(8.428582, 4.482551), title: "Ilorin Airport Cargo Terminal", type: "Transportation", description: "The cargo terminal at Ilorin International Airport is one of 13 new terminals being built across the country to increase air cargo capaicty and meet the growing transport needs of Nigeria's booming manufacturing and agricultural sectors." },
+        { latLng: new google.maps.LatLng(13.044681, 5.264624), title: "Almajiri School Project", type: "Education", description: "Sokoto is the first city to receive one of 35 'Almajiri' schools, dedicated to providing education to orphans. Northern Nigeria has received $30 million in school construction and renovation as part of the government's infrastructure investments." },
+        { latLng: new google.maps.LatLng(5.565452, 5.201978), title: "Ogidigbe Gas Industrial Park", type: "Power", description: "The Federal Government has begun construction of the country's first gas industrial park, which will vastly increase the supply of petrochemicals critical for fueling growth in the industrial and agricultural sectors." },
+    ]);
+  
+  </script> 
+</body>
+</html>
